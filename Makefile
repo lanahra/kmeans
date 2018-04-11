@@ -5,7 +5,7 @@ IFLAGS = -I./ -I/usr/local/include/google/
 LFLAGS = -L./ -L/usr/local/lib/ -lkmeans -lcmockery
 
 OBJ = kmeans
-TEST = tests
+TEST = kmeans_test
 LIB = libkmeans.a
 
 all: $(LIB)
@@ -13,7 +13,7 @@ all: $(LIB)
 clean:
 	rm -f *.o $(TEST) $(LIB)
 
-test: $(LIB) $(TEST)
+test: $(TEST)
 	./$(TEST)
 
 $(LIB): $(OBJ).o
@@ -22,5 +22,5 @@ $(LIB): $(OBJ).o
 $(OBJ).o: $(OBJ).c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-$(TEST): $(TEST).c
-	$(CC) $(CFLAGS) -o $@ $< $(IFLAGS) $(LFLAGS)
+$(TEST): $(TEST).c $(LIB)
+	$(CC) $(CFLAGS) -o $@ $< $(IFLAGS) $(LFLAGS) -D UNIT_TESTING=1
