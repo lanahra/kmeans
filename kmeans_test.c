@@ -13,6 +13,11 @@ void test_alloc_kmeans_context(void **state) {
     assert_true(kc->centroids);
     assert_true(kc->observations);
     assert_true(kc->cluster_map);
+
+    free(kc->centroids);
+    free(kc->observations);
+    free(kc->cluster_map);
+    free(kc);
 }
 
 int main(int argc, char **argv) {

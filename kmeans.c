@@ -24,7 +24,6 @@ Kmeans_context* alloc_kmeans_context(unsigned int k, unsigned int n) {
 
     kc->centroids = malloc(kc->k * sizeof *kc->centroids);
     kc->observations = malloc(kc->n * sizeof *kc->observations);
-
     kc->cluster_map = malloc(kc->n * sizeof *kc->cluster_map);
 
     return kc;
