@@ -29,10 +29,16 @@ Kmeans_context* alloc_kmeans_context(unsigned int k, unsigned int n) {
     return kc;
 }
 
-int free_kmeans_context(Kmeans_context *kc) {
-    return 0;
+void free_kmeans_context(Kmeans_context *kc) {
+    if (kc != 0) {
+        free(kc->centroids);
+        free(kc->observations);
+        free(kc->cluster_map);
+        free(kc);
+    }
 }
 
 int kmeans(Kmeans_context *kc) {
+
     return 0;
 }

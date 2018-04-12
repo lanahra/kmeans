@@ -20,9 +20,21 @@ void test_alloc_kmeans_context(void **state) {
     free(kc);
 }
 
+void test_free_kmeans_context(void **state) {
+    Kmeans_context* const kc = malloc(sizeof *kc);
+    kc->k = 3;
+    kc->n = 10;
+    kc->centroids = malloc(kc->k * sizeof *kc->centroids);
+    kc->observations = malloc(kc->n * sizeof *kc->observations);
+    kc->cluster_map = malloc(kc->n * sizeof *kc->cluster_map);
+
+    free_kmeans_context(kc);
+}
+
 int main(int argc, char **argv) {
     const UnitTest tests[] = {
-        unit_test(test_alloc_kmeans_context)
+        unit_test(test_alloc_kmeans_context),
+        unit_test(test_free_kmeans_context)
     };
 
     return run_tests(tests);

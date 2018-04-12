@@ -29,6 +29,6 @@ typedef struct Kmeans_context {
 
 Kmeans_context* alloc_kmeans_context(unsigned int k, unsigned int n);
 
-int free_kmeans_context(Kmeans_context *kc);
+void free_kmeans_context(Kmeans_context *kc);
 
 int kmeans(Kmeans_context *kc);
