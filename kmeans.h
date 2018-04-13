@@ -32,3 +32,18 @@ Kmeans_context* alloc_kmeans_context(unsigned int k, unsigned int n);
 void free_kmeans_context(Kmeans_context *kc);
 
 int kmeans(Kmeans_context *kc);
+
+typedef struct Point {
+    double x;
+    double y;
+} Point;
+
+double point_distance(const void *a, const void *b);
+
+void point_update_centroid(
+        unsigned int n,
+        const void *observations,
+        unsigned int k,
+        const void *cluster_map,
+        void *centroid
+);

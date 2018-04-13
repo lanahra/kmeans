@@ -22,8 +22,6 @@ Kmeans_context* alloc_kmeans_context(unsigned int k, unsigned int n) {
     kc->k = k;
     kc->n = n;
 
-    kc->centroids = malloc(kc->k * sizeof *kc->centroids);
-    kc->observations = malloc(kc->n * sizeof *kc->observations);
     kc->cluster_map = malloc(kc->n * sizeof *kc->cluster_map);
 
     return kc;
@@ -31,8 +29,6 @@ Kmeans_context* alloc_kmeans_context(unsigned int k, unsigned int n) {
 
 void free_kmeans_context(Kmeans_context *kc) {
     if (kc != 0) {
-        free(kc->centroids);
-        free(kc->observations);
         free(kc->cluster_map);
         free(kc);
     }
@@ -41,4 +37,41 @@ void free_kmeans_context(Kmeans_context *kc) {
 int kmeans(Kmeans_context *kc) {
 
     return 0;
+}
+
+double point_distance(const void *a, const void *b) {
+    Point pa = *(Point*)a;
+    Point pb = *(Point*)b;
+
+    double dx = pa.x - pb.x;
+    double dy = pa.y - pb.y;
+
+    return (dx * dx) + (dy * dy);
+}
+
+void point_update_centroid(
+        unsigned int n,
+        const void *observations,
+        unsigned int k,
+        const void *cluster_map,
+        void *centroid) {
+    Point mean = {.x = 0, .y = 0};
+    unsigned int cluster_size = 0;
+
+    int i;
+    for (i = 0; i < n; i++) {
+        if (k == ((unsigned int*)cluster_map)[i]) {
+            mean.x += ((Point*)observations)[i].x;
+            mean.y += ((Point*)observations)[i].y;
+            cluster_size++;
+        }
+    }
+
+    if (cluster_size != 0) {
+        mean.x /= cluster_size;
+        mean.y /= cluster_size;
+
+        Point *c = (Point*)centroid;
+        *c = mean;
+    }
 }
