@@ -65,6 +65,19 @@ static void assign_clusters(Kmeans_context *kc) {
     }
 }
 
+static void update_centroids(Kmeans_context *kc) {
+    int i;
+    for (i = 0; i < kc->k; i++) {
+        kc->update_centroid(
+                kc->n,
+                *kc->observations,
+                i,
+                kc->cluster_map,
+                kc->centroids[i]
+        );
+    }
+}
+
 int kmeans(Kmeans_context *kc) {
 
     return 0;
@@ -88,12 +101,13 @@ void point_update_centroid(
         void *centroid) {
     Point mean = {.x = 0, .y = 0};
     unsigned int cluster_size = 0;
+    Point *points = (Point*)observations;
 
     int i;
     for (i = 0; i < n; i++) {
         if (k == cluster_map[i]) {
-            mean.x += ((Point*)observations)[i].x;
-            mean.y += ((Point*)observations)[i].y;
+            mean.x += points[i].x;
+            mean.y += points[i].y;
             cluster_size++;
         }
     }
