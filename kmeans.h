@@ -31,7 +31,7 @@ Kmeans_context* alloc_kmeans_context(unsigned int k, unsigned int n);
 
 void free_kmeans_context(Kmeans_context *kc);
 
-int kmeans(Kmeans_context *kc);
+void kmeans(Kmeans_context *kc);
 
 typedef struct Point {
     double x;

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "kmeans.h"
 
 #if UNIT_TESTING
@@ -27,7 +28,7 @@ Kmeans_context* alloc_kmeans_context(unsigned int k, unsigned int n) {
 
     kc->observations = malloc(kc->n * sizeof *kc->observations);
     kc->centroids = malloc(kc->k * sizeof *kc->centroids);
-    kc->cluster_map = malloc(kc->n * sizeof *kc->cluster_map);
+    kc->cluster_map = calloc(kc->n, sizeof *kc->cluster_map);
 
     return kc;
 }
@@ -78,9 +79,18 @@ static void update_centroids(Kmeans_context *kc) {
     }
 }
 
-int kmeans(Kmeans_context *kc) {
+void kmeans(Kmeans_context *kc) {
+    unsigned int *last = calloc(kc->n, sizeof *last);
+    size_t size = kc->n * sizeof *kc->cluster_map;
 
-    return 0;
+    do {
+        memcpy(last, kc->cluster_map, size);
+
+        assign_clusters(kc);
+        update_centroids(kc);
+    } while(memcmp(last, kc->cluster_map, size) != 0);
+
+    free(last);
 }
 
 double point_distance(const void *a, const void *b) {

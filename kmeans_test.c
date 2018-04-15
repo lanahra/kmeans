@@ -171,6 +171,40 @@ void test_update_centroids(void **state) {
 }
 
 void test_kmeans(void **state) {
+    Point centroids[3] = {
+        {.x = 1, .y = 1},
+        {.x = 5, .y = 5},
+        {.x = 7, .y = 7},
+    };
+    Point observations[10] = {
+        {.x = 1, .y = 1},
+        {.x = 2, .y = 2},
+        {.x = 3, .y = 3},
+        {.x = 4, .y = 4},
+        {.x = 5, .y = 5},
+        {.x = 6, .y = 6},
+        {.x = 7, .y = 7},
+        {.x = 8, .y = 8},
+        {.x = 9, .y = 9},
+        {.x = 10, .y = 10},
+    };
+
+    Kmeans_context* const kc = alloc_kmeans_context(3, 10);
+    kc->distance = point_distance;
+    kc->update_centroid = point_update_centroid;
+
+    int i;
+    for (i = 0; i < kc->n; i++) {
+        kc->observations[i] = &observations[i];
+    }
+
+    for (i = 0; i < kc->k; i++) {
+        kc->centroids[i] = &centroids[i];
+    }
+
+    kmeans(kc);
+
+    free_kmeans_context(kc);
 }
 
 int main(int argc, char **argv) {
@@ -181,6 +215,7 @@ int main(int argc, char **argv) {
         unit_test(test_point_update_centroid),
         unit_test(test_assign_clusters),
         unit_test(test_update_centroids),
+        unit_test(test_kmeans),
     };
 
     return run_tests(tests);
