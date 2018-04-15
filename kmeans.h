@@ -20,9 +20,9 @@ typedef struct Kmeans_context {
     // update centroid to center of its cluster
     void (*update_centroid)(
             unsigned int n,
-            const void **observations,
+            const void *observations,
             unsigned int k,
-            const int *cluster_map,
+            unsigned int *cluster_map,
             void *centroid
     );
 } Kmeans_context;
@@ -44,6 +44,6 @@ void point_update_centroid(
         unsigned int n,
         const void *observations,
         unsigned int k,
-        const void *cluster_map,
+        unsigned int *cluster_map,
         void *centroid
 );

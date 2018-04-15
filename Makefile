@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall
+CFLAGS = -Wall -Wno-pointer-to-int-cast
 
 IFLAGS = -I./ -I/usr/local/include/google/
 LFLAGS = -L./ -L/usr/local/lib/ -lkmeansd -lcmockery
