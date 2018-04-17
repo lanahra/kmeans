@@ -14,7 +14,7 @@ MAIN = main
 
 all: $(OBJ).o
 	ar crs $(LIB) $<
-	$(CC) $(CFLAGS) -o $(MAIN) $(MAIN).c $(IFLAGS) $(LFLAGS) -lkmeans
+	$(CC) $(CFLAGS) -o kmeans $(MAIN).c $(IFLAGS) $(LFLAGS) -lkmeans
 
 clean:
 	rm -f *.o $(TEST) $(LIB) $(LIBD) $(MAIN)

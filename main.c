@@ -1,40 +1,54 @@
 #include <stdio.h>
+#include <time.h>
 #include <kmeans.h>
 
-static const unsigned int centroids_n = 10;
-static const unsigned int observations_n = 33920;
+#define CENTROIDS 4
+#define OBSERVATIONS 200000
+Point34 centroids[CENTROIDS];
+Point34 observations[OBSERVATIONS];
 
 int main(int argc, char **argv) {
-    Kmeans_context *kc = alloc_kmeans_context(centroids_n, observations_n);
-    kc->distance = point_distance;
-    kc->update_centroid = point_update_centroid;
+    clock_t begin = clock();
 
-    Point centroids[centroids_n];
-    Point observations[observations_n];
+    Kmeans_context *kc = alloc_kmeans_context(CENTROIDS, OBSERVATIONS);
+    kc->distance = point34_distance;
+    kc->update_centroid = point34_update_centroid;
 
-    FILE *f = fopen("centroids.txt", "r");
-    int i;
+    FILE *f = fopen("observations.txt", "r");
+    unsigned long i;
+    int j;
     for (i = 0; i < kc->k; i++) {
-        fscanf(f, "%lf %lf\n", &centroids[i].x, &centroids[i].y);
+        for (j = 0; j < 33; j++) {
+            fscanf(f, "%lf ", &centroids[i].f[j]);
+        }
+        fscanf(f, "%lf \n", &centroids[i].f[33]);
         kc->centroids[i] = &centroids[i];
     }
     fclose(f);
 
     f = fopen("observations.txt", "r");
     for (i = 0; i < kc->n; i++) {
-        fscanf(f, "%lf %lf\n", &observations[i].x, &observations[i].y);
+        for (j = 0; j < 33; j++) {
+            fscanf(f, "%lf ", &observations[i].f[j]);
+        }
+        fscanf(f, "%lf \n", &observations[i].f[33]);
         kc->observations[i] = &observations[i];
     }
     fclose(f);
 
     kmeans(kc);
 
-    f = fopen("gold.txt", "w");
+    f = fopen("output.txt", "w");
     for (i = 0; i < kc->n; i++) {
-        fprintf(f, "%u\n", kc->cluster_map[i]);
+        fprintf(f, "%lu\n", kc->cluster_map[i]);
     }
     fclose(f);
 
     free_kmeans_context(kc);
+
+    clock_t end = clock();
+    double time = (double)(end - begin) / CLOCKS_PER_SEC;
+    printf("time: %lf\n", time);
+
     return 0;
 }
