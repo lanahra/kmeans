@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <time.h>
-#include <kmeans.h>
+#include "kmeans.h"
 
 #define CENTROIDS 4
 #define OBSERVATIONS 200000

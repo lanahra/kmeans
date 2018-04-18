@@ -2,220 +2,92 @@
 #include <stddef.h>
 #include <setjmp.h>
 #include <cmockery.h>
-#include <kmeans.h>
+#include "kmeans.h"
 
-extern void assign_clusters(Kmeans_context *kc);
-extern void update_centroids(Kmeans_context *kc);
+//extern void assign_clusters(Kmeans_context *kc);
+//extern void update_centroids(Kmeans_context *kc);
 
-void test_alloc_kmeans_context(void **state) {
-    Kmeans_context* const kc = alloc_kmeans_context(3, 10);
+void test_alloc_free_kmeans_context(void **state) {
+    Kmeans_context* const kc = alloc_kmeans_context(3, 10, 2);
 
     assert_true(kc);
     assert_int_equal(kc->k, 3);
     assert_int_equal(kc->n, 10);
+    assert_int_equal(kc->f, 2);
     assert_true(kc->observations);
     assert_true(kc->centroids);
     assert_true(kc->cluster_map);
 
-    free(kc->observations);
-    free(kc->centroids);
-    free(kc->cluster_map);
-    free(kc);
-}
-
-void test_free_kmeans_context(void **state) {
-    Kmeans_context* const kc = malloc(sizeof *kc);
-    kc->k = 3;
-    kc->n = 10;
-    kc->observations = malloc(kc->n * sizeof *kc->observations);
-    kc->centroids = malloc(kc->k * sizeof *kc->centroids);
-    kc->cluster_map = malloc(kc->n * sizeof *kc->cluster_map);
-
     free_kmeans_context(kc);
 }
 
-void test_point_distance(void **state) {
-    Point a = {.x = 2, .y = 4};
-    Point b = {.x = 1, .y = 2};
+void test_distance(void **state) {
+    unsigned long f = 2;
+    double *a = malloc(f * sizeof *a);
+    double *b = malloc(f * sizeof *a);
 
-    double expected = 5.0;
-    double result = point_distance(&a, &b);
+    a[0] = 1;
+    a[1] = 1;
+
+    b[0] = 3;
+    b[1] = 3;
+
+    double result = distance(2, a, b);
+    double expected = 8;
 
     assert_memory_equal(&result, &expected, sizeof expected);
+
+    free(a);
+    free(b);
 }
 
-void test_point_update_centroid(void **state) {
-    const Point observations[10] = {
-        {.x = 1, .y = 1},
-        {.x = 2, .y = 2},
-        {.x = 3, .y = 3},
-        {.x = 4, .y = 4},
-        {.x = 5, .y = 5},
-        {.x = 6, .y = 6},
-        {.x = 7, .y = 7},
-        {.x = 8, .y = 8},
-        {.x = 9, .y = 9},
-        {.x = 10, .y = 10},
-    };
-    unsigned int cluster_map[10] = {0, 0, 0, 1, 1, 1, 1, 2, 2, 2};
-
-    Point result_a;
-    Point result_b;
-    Point result_c;
-    point_update_centroid(10, observations, 0, cluster_map, &result_a);
-    point_update_centroid(10, observations, 1, cluster_map, &result_b);
-    point_update_centroid(10, observations, 2, cluster_map, &result_c);
-
-    Point expected_a = {.x = 2, .y = 2};
-    Point expected_b = {.x = 5.5, .y = 5.5};
-    Point expected_c = {.x = 9, .y = 9};
-
-    assert_memory_equal(&result_a, &expected_a, sizeof expected_a);
-    assert_memory_equal(&result_b, &expected_b, sizeof expected_b);
-    assert_memory_equal(&result_c, &expected_c, sizeof expected_c);
-}
-
-void test_assign_clusters(void **state) {
-    Point centroids[3] = {
-        {.x = 1, .y = 1},
-        {.x = 5, .y = 5},
-        {.x = 7, .y = 7},
-    };
-    Point observations[10] = {
-        {.x = 1, .y = 1},
-        {.x = 2, .y = 2},
-        {.x = 3, .y = 3},
-        {.x = 4, .y = 4},
-        {.x = 5, .y = 5},
-        {.x = 6, .y = 6},
-        {.x = 7, .y = 7},
-        {.x = 8, .y = 8},
-        {.x = 9, .y = 9},
-        {.x = 10, .y = 10},
+void test_update_centroid(void **state) {
+    double points[5][2] = {
+        {1, 1},
+        {2, 2},
+        {3, 3},
+        {4, 4},
+        {5, 5},
     };
 
-    Kmeans_context* const kc = alloc_kmeans_context(3, 10);
-    kc->distance = point_distance;
-    kc->update_centroid = point_update_centroid;
+    double result[2];
+
+    unsigned long cluster_map[5] = {0, 0, 0, 1, 1};
+
+    unsigned long f = 2;
+    unsigned long n = 5;
+
+    double **observations = malloc(n * sizeof *observations);
 
     int i;
-    for (i = 0; i < kc->n; i++) {
-        kc->observations[i] = &observations[i];
+    int j;
+    for (i = 0; i < n; i++) {
+        observations[i] = malloc(f * sizeof *observations[i]);
+
+        for (j = 0; j < f; j++ ) {
+            observations[i][j] = points[i][j];
+        }
     }
 
-    for (i = 0; i < kc->k; i++) {
-        kc->centroids[i] = &centroids[i];
-    }
 
-    assign_clusters(kc);
+   update_centroid(f, n, (const double**)observations, 0, cluster_map, result);
 
-    unsigned int expected[10] = {0, 0, 0, 1, 1, 1, 2, 2, 2, 2};
+   double expected[2] = {2, 2};
 
-    for (i = 0; i < kc->n; i++) {
-        assert_int_equal(kc->cluster_map[i], expected[i]);
-    }
+   assert_memory_equal(result, expected, sizeof expected);
 
-    free_kmeans_context(kc);
-}
+   for (i = 0; i < n; i++) {
+       free(observations[i]);
+   }
 
-void test_update_centroids(void **state) {
-    Point centroids[3] = {
-        {.x = 1, .y = 1},
-        {.x = 5, .y = 5},
-        {.x = 7, .y = 7},
-    };
-    Point observations[10] = {
-        {.x = 1, .y = 1},
-        {.x = 2, .y = 2},
-        {.x = 3, .y = 3},
-        {.x = 4, .y = 4},
-        {.x = 5, .y = 5},
-        {.x = 6, .y = 6},
-        {.x = 7, .y = 7},
-        {.x = 8, .y = 8},
-        {.x = 9, .y = 9},
-        {.x = 10, .y = 10},
-    };
-    unsigned int cluster_map[10] = {0, 0, 0, 1, 1, 1, 1, 2, 2, 2};
-
-    Kmeans_context* const kc = alloc_kmeans_context(3, 10);
-    kc->distance = point_distance;
-    kc->update_centroid = point_update_centroid;
-
-    int i;
-    for (i = 0; i < kc->n; i++) {
-        kc->observations[i] = &observations[i];
-    }
-
-    for (i = 0; i < kc->k; i++) {
-        kc->centroids[i] = &centroids[i];
-    }
-
-    for (i = 0; i < kc->n; i++) {
-        kc->cluster_map[i] = cluster_map[i];
-    }
-
-    update_centroids(kc);
-
-    Point expected[3] = {
-        {.x = 2, .y = 2},
-        {.x = 5.5, .y = 5.5},
-        {.x = 9, .y = 9},
-    };
-
-    for (i = 0; i < kc->k; i++) {
-        assert_memory_equal(&centroids[i], &expected[i], sizeof expected[i]);
-    }
-
-    free_kmeans_context(kc);
-}
-
-void test_kmeans(void **state) {
-    Point centroids[3] = {
-        {.x = 1, .y = 1},
-        {.x = 5, .y = 5},
-        {.x = 7, .y = 7},
-    };
-    Point observations[10] = {
-        {.x = 1, .y = 1},
-        {.x = 2, .y = 2},
-        {.x = 3, .y = 3},
-        {.x = 4, .y = 4},
-        {.x = 5, .y = 5},
-        {.x = 6, .y = 6},
-        {.x = 7, .y = 7},
-        {.x = 8, .y = 8},
-        {.x = 9, .y = 9},
-        {.x = 10, .y = 10},
-    };
-
-    Kmeans_context* const kc = alloc_kmeans_context(3, 10);
-    kc->distance = point_distance;
-    kc->update_centroid = point_update_centroid;
-
-    int i;
-    for (i = 0; i < kc->n; i++) {
-        kc->observations[i] = &observations[i];
-    }
-
-    for (i = 0; i < kc->k; i++) {
-        kc->centroids[i] = &centroids[i];
-    }
-
-    kmeans(kc);
-
-    free_kmeans_context(kc);
+   free(observations);
 }
 
 int main(int argc, char **argv) {
     const UnitTest tests[] = {
-        unit_test(test_alloc_kmeans_context),
-        unit_test(test_free_kmeans_context),
-        unit_test(test_point_distance),
-        unit_test(test_point_update_centroid),
-        unit_test(test_assign_clusters),
-        unit_test(test_update_centroids),
-        unit_test(test_kmeans),
+        unit_test(test_alloc_free_kmeans_context),
+        unit_test(test_distance),
+        unit_test(test_update_centroid),
     };
 
     return run_tests(tests);

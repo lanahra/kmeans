@@ -20,22 +20,44 @@ extern void _test_free(void* const ptr, const char* file, const int line);
 
 #endif // UNIT_TESTING
 
-Kmeans_context* alloc_kmeans_context(unsigned long k, unsigned long n) {
+Kmeans_context* alloc_kmeans_context(
+        unsigned long k,
+        unsigned long n,
+        unsigned long f) {
+    int i;
     Kmeans_context *kc = malloc(sizeof *kc);
 
     kc->k = k;
     kc->n = n;
+    kc->f = f;
 
-    kc->observations = malloc(kc->n * sizeof *kc->observations);
-    kc->centroids = malloc(kc->k * sizeof *kc->centroids);
-    kc->cluster_map = calloc(kc->n, sizeof *kc->cluster_map);
+    kc->observations = malloc(n * sizeof *kc->observations);
+    for (i = 0; i < n; i++) {
+        kc->observations[i] = malloc(f * sizeof *kc->observations[i]);
+    }
+
+    kc->centroids = malloc(k * sizeof *kc->centroids);
+    for (i = 0; i < k; i++) {
+        kc->centroids[i] = malloc(f * sizeof *kc->centroids[i]);
+    }
+
+    kc->cluster_map = calloc(n, sizeof *kc->cluster_map);
 
     return kc;
 }
 
 void free_kmeans_context(Kmeans_context *kc) {
+    int i;
+
     if (kc != 0) {
+        for (i = 0; i < kc->n; i++) {
+            free(kc->observations[i]);
+        }
         free(kc->observations);
+
+        for (i = 0; i < kc->k; i++) {
+            free(kc->centroids[i]);
+        }
         free(kc->centroids);
         free(kc->cluster_map);
         free(kc);
@@ -44,20 +66,20 @@ void free_kmeans_context(Kmeans_context *kc) {
 
 static void assign_clusters(Kmeans_context *kc) {
     double shortest;
-    double distance;
+    double d;
     unsigned long cluster;
 
     long i;
     long j;
     for (i = 0; i < kc->n; i++) {
-        shortest = kc->distance(kc->observations[i], kc->centroids[0]);
+        shortest = distance(kc->f, kc->observations[i], kc->centroids[0]);
         cluster = 0;
 
         for (j = 1; j < kc->k; j++) {
-            distance = kc->distance(kc->observations[i], kc->centroids[j]);
+            d = distance(kc->f, kc->observations[i], kc->centroids[j]);
 
-            if (distance < shortest) {
-                shortest = distance;
+            if (d < shortest) {
+                shortest = d;
                 cluster = j;
             }
         }
@@ -69,9 +91,10 @@ static void assign_clusters(Kmeans_context *kc) {
 static void update_centroids(Kmeans_context *kc) {
     long i;
     for (i = 0; i < kc->k; i++) {
-        kc->update_centroid(
+        update_centroid(
+                kc->f,
                 kc->n,
-                *kc->observations,
+                (const double**)kc->observations,
                 i,
                 kc->cluster_map,
                 kc->centroids[i]
@@ -93,87 +116,48 @@ void kmeans(Kmeans_context *kc) {
     free(last);
 }
 
-double point_distance(const void *a, const void *b) {
-    Point pa = *(Point*)a;
-    Point pb = *(Point*)b;
 
-    double dx = pa.x - pb.x;
-    double dy = pa.y - pb.y;
-
-    return (dx * dx) + (dy * dy);
-}
-
-void point_update_centroid(
-        unsigned long n,
-        const void *observations,
-        unsigned long k,
-        unsigned long *cluster_map,
-        void *centroid) {
-    Point mean = {.x = 0, .y = 0};
-    unsigned long cluster_size = 0;
-    Point *points = (Point*)observations;
-
-    long i;
-    for (i = 0; i < n; i++) {
-        if (k == cluster_map[i]) {
-            mean.x += points[i].x;
-            mean.y += points[i].y;
-            cluster_size++;
-        }
-    }
-
-    if (cluster_size != 0) {
-        mean.x /= cluster_size;
-        mean.y /= cluster_size;
-
-        Point *c = (Point*)centroid;
-        *c = mean;
-    }
-}
-
-double point34_distance(const void *a, const void *b) {
-    Point34 pa = *(Point34*)a;
-    Point34 pb = *(Point34*)b;
-    double diff[34];
+double distance(unsigned long f, double *a, double *b) {
+    double *diff = malloc(f * sizeof *diff);
     double distance = 0;
 
     int i;
-    for (i = 0; i < 34; i++) {
-        diff[i] = pa.f[i] - pb.f[i];
+    for (i = 0; i < f; i++) {
+        diff[i] = a[i] - b[i];
         distance += diff[i] * diff[i];
     }
 
+    free(diff);
     return distance;
 }
 
-
-void point34_update_centroid(
+void update_centroid(
+        unsigned long f,
         unsigned long n,
-        const void *observations,
+        const double **observation,
         unsigned long k,
         unsigned long *cluster_map,
-        void *centroid) {
-    Point34 mean = {.f = {0}};
+        double *centroid) {
+    double *mean = calloc(f, sizeof *mean);
     unsigned long cluster_size = 0;
-    Point34 *points = (Point34*)observations;
 
     unsigned long i;
-    int j;
+    unsigned long j;
+
     for (i = 0; i < n; i++) {
         if (k == cluster_map[i]) {
-            for (j = 0; j < 34; j++) {
-                mean.f[j] += points[i].f[j];
+            for (j = 0; j < f; j++) {
+                mean[j] += observation[i][j];
             }
             cluster_size++;
         }
     }
 
     if (cluster_size != 0) {
-        for (j = 0; j < 34; j++) {
-            mean.f[j] /= cluster_size;
+        for (j = 0; j < f; j++) {
+            centroid[j] = mean[j] / cluster_size;
         }
-
-        Point34 *c = (Point34*)centroid;
-        *c = mean;
     }
+
+    free(mean);
 }
