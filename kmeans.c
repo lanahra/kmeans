@@ -185,7 +185,7 @@ static void assign_clusters_p(Kmeans_context *kc) {
     pthread_t *threads = malloc(kc->n * sizeof *threads);
     struct thread_args *args = malloc(kc->n * sizeof *args);
 
-    int i;
+    unsigned long i;
     for (i = 0; i < kc->n; i++) {
         args[i].i = i;
         args[i].kc = kc;
@@ -194,6 +194,41 @@ static void assign_clusters_p(Kmeans_context *kc) {
     }
 
     for (i = 0; i < kc->n; i++) {
+        pthread_join(threads[i], 0);
+    }
+
+    free(args);
+    free(threads);
+}
+
+void* update_centroids_thread(void *args) {
+    struct thread_args *tc = args;
+    Kmeans_context *kc = tc->kc;
+
+    update_centroid(
+            kc->f,
+            kc->n,
+            (const double**)kc->observations,
+            tc->i,
+            kc->cluster_map,
+            kc->centroids[tc->i]
+    );
+
+    return 0;
+}
+
+static void update_centroids_p(Kmeans_context *kc) {
+    pthread_t *threads = malloc(kc->k * sizeof *threads);
+    struct thread_args *args = malloc(kc->k * sizeof *args);
+
+    unsigned long i;
+    for (i = 0; i < kc->k; i++) {
+        args[i].i = i;
+        args[i].kc = kc;
+        pthread_create(&threads[i], 0, update_centroids_thread, &args[i]);
+    }
+
+    for (i = 0; i < kc->k; i++) {
         pthread_join(threads[i], 0);
     }
 

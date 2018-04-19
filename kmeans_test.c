@@ -7,6 +7,7 @@
 extern void assign_clusters(Kmeans_context *kc);
 extern void update_centroids(Kmeans_context *kc);
 extern void assign_clusters_p(Kmeans_context *kc);
+extern void update_centroids_p(Kmeans_context *kc);
 
 void test_alloc_free_kmeans_context(void **state) {
     Kmeans_context* const kc = alloc_kmeans_context(3, 10, 2);
