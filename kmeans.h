@@ -27,6 +27,7 @@ Kmeans_context* alloc_kmeans_context(
 void free_kmeans_context(Kmeans_context *kc);
 
 void kmeans(Kmeans_context *kc);
+void kmeans_p(Kmeans_context *kc);
 
 double distance(unsigned long f, double *a, double *b);
 

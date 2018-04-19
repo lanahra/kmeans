@@ -235,3 +235,17 @@ static void update_centroids_p(Kmeans_context *kc) {
     free(args);
     free(threads);
 }
+
+void kmeans_p(Kmeans_context *kc) {
+    unsigned long *last = calloc(kc->n, sizeof *last);
+    size_t size = kc->n * sizeof *kc->cluster_map;
+
+    do {
+        memcpy(last, kc->cluster_map, size);
+
+        assign_clusters_p(kc);
+        update_centroids_p(kc);
+    } while(memcmp(last, kc->cluster_map, size) != 0);
+
+    free(last);
+}
