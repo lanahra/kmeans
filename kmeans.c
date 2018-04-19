@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include "kmeans.h"
 
 #if UNIT_TESTING
@@ -19,6 +20,10 @@ extern void _test_free(void* const ptr, const char* file, const int line);
 #define static
 
 #endif // UNIT_TESTING
+
+static void assign_cluster(unsigned long i, Kmeans_context *kc);
+static void assign_clusters(Kmeans_context *kc);
+static void update_centroids(Kmeans_context *kc);
 
 Kmeans_context* alloc_kmeans_context(
         unsigned long k,
@@ -61,44 +66,6 @@ void free_kmeans_context(Kmeans_context *kc) {
         free(kc->centroids);
         free(kc->cluster_map);
         free(kc);
-    }
-}
-
-static void assign_clusters(Kmeans_context *kc) {
-    double shortest;
-    double d;
-    unsigned long cluster;
-
-    long i;
-    long j;
-    for (i = 0; i < kc->n; i++) {
-        shortest = distance(kc->f, kc->observations[i], kc->centroids[0]);
-        cluster = 0;
-
-        for (j = 1; j < kc->k; j++) {
-            d = distance(kc->f, kc->observations[i], kc->centroids[j]);
-
-            if (d < shortest) {
-                shortest = d;
-                cluster = j;
-            }
-        }
-
-        kc->cluster_map[i] = cluster;
-    }
-}
-
-static void update_centroids(Kmeans_context *kc) {
-    long i;
-    for (i = 0; i < kc->k; i++) {
-        update_centroid(
-                kc->f,
-                kc->n,
-                (const double**)kc->observations,
-                i,
-                kc->cluster_map,
-                kc->centroids[i]
-        );
     }
 }
 
@@ -160,4 +127,76 @@ void update_centroid(
     }
 
     free(mean);
+}
+
+static void assign_cluster(unsigned long i, Kmeans_context *kc) {
+    double shortest = distance(kc->f, kc->observations[i], kc->centroids[0]);
+    double d;
+    unsigned long cluster = 0;
+
+    int j;
+    for (j = 0; j < kc->k; j++) {
+        d = distance(kc->f, kc->observations[i], kc->centroids[j]);
+
+        if (d < shortest) {
+            shortest = d;
+            cluster = j;
+        }
+    }
+
+    kc->cluster_map[i] = cluster;
+}
+
+static void assign_clusters(Kmeans_context *kc) {
+    unsigned long i;
+    for (i = 0; i < kc->n; i++) {
+        assign_cluster(i, kc);
+    }
+}
+
+static void update_centroids(Kmeans_context *kc) {
+    long i;
+    for (i = 0; i < kc->k; i++) {
+        update_centroid(
+                kc->f,
+                kc->n,
+                (const double**)kc->observations,
+                i,
+                kc->cluster_map,
+                kc->centroids[i]
+        );
+    }
+}
+
+struct thread_args {
+    unsigned long i;
+    Kmeans_context *kc;
+};
+
+void* assign_clusters_thread(void *args) {
+    struct thread_args *tc = args;
+
+    assign_cluster(tc->i, tc->kc);
+
+    return 0;
+}
+
+static void assign_clusters_p(Kmeans_context *kc) {
+    pthread_t *threads = malloc(kc->n * sizeof *threads);
+    struct thread_args *args = malloc(kc->n * sizeof *args);
+
+    int i;
+    for (i = 0; i < kc->n; i++) {
+        args[i].i = i;
+        args[i].kc = kc;
+        pthread_create(&threads[i], 0, assign_clusters_thread, &args[i]);
+
+    }
+
+    for (i = 0; i < kc->n; i++) {
+        pthread_join(threads[i], 0);
+    }
+
+    free(args);
+    free(threads);
 }

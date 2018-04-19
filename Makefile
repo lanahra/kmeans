@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -Wno-pointer-to-int-cast
 
 IFLAGS = -I/usr/local/include/google/
-LFLAGS = -L/usr/local/lib/ -lcmockery
+LFLAGS = -L/usr/local/lib/ -lcmockery -lpthread
 
 DFLAGS = -D UNIT_TESTING=1
 
