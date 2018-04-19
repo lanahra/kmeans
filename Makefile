@@ -10,7 +10,7 @@ OBJ = main.o kmeans.o
 TST = kmeans_test.o kmeansd.o
 
 all: $(OBJ)
-	$(CC) $(CFLAGS) -o kmeans $(OBJ)
+	$(CC) $(CFLAGS) -o kmeans $(OBJ) -lpthread
 
 clean:
 	rm -f *.o kmeans kmeans_test
