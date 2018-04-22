@@ -1,3 +1,5 @@
+#define MAX_THREADS 4
+
 typedef struct Kmeans_context {
     // number of clusters
     unsigned long k;
