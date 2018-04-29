@@ -6,6 +6,7 @@
 #include "kmeans.h"
 
 int main(int argc, char **argv) {
+    clock_t begin = clock();
     int opt;
     bool parallel = false;
 
@@ -58,7 +59,17 @@ int main(int argc, char **argv) {
 
         fclose(input);
 
-        clock_t begin = clock();
+        clock_t end;
+        double time;
+        do {
+            end = clock();
+            time = (double)(end - begin) / CLOCKS_PER_SEC;
+        } while (time < 2.0);
+
+        printf("read time: %lf\n", time);
+
+
+        begin = clock();
 
         if (parallel) {
             kmeans_p(kc);
@@ -66,8 +77,8 @@ int main(int argc, char **argv) {
             kmeans(kc);
         }
 
-        clock_t end = clock();
-        double time = (double)(end - begin) / CLOCKS_PER_SEC;
+        end = clock();
+        time = (double)(end - begin) / CLOCKS_PER_SEC;
         printf("time: %lf\n", time);
 
         FILE *output = fopen(output_path, "w");
