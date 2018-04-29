@@ -19,6 +19,13 @@ test: $(TST)
 	$(CC) $(CFLAGS) $(DFLAGS) -o kmeans_test $(TST) $(IFLAGS) $(LFLAGS)
 	./kmeans_test
 
+install:
+	mkdir -p /tmp/kmeans
+	cp kmeans /tmp/kmeans
+	cp input /tmp/kmeans
+	cp gold /tmp/kmeans
+	cp carolfi /tmp/kmeans
+
 kmeans_test.o: kmeans_test.c
 	$(CC) $(CFLAGS) $(DFLAGS) -o $@ -c $< $(IFLAGS) $(LFLAGS)
 

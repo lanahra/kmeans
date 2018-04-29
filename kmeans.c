@@ -135,7 +135,7 @@ static void assign_cluster(unsigned long i, Kmeans_context *kc) {
     unsigned long cluster = 0;
 
     int j;
-    for (j = 0; j < kc->k; j++) {
+    for (j = 1; j < kc->k; j++) {
         d = distance(kc->f, kc->observations[i], kc->centroids[j]);
 
         if (d < shortest) {
