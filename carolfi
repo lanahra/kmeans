@@ -12,7 +12,7 @@ signalCmd = killall -2 kmeans
 killStrs = killall -9 gdb;killall -9 kmeans
 
 initSignal = 2
-endSignal = 4
+endSignal = 8
 
 [single]
 faultModel = 0
