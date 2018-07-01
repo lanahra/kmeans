@@ -2,16 +2,26 @@
 
 debug = False
 gdbExecName = gdb
-seqSignals = 1
+seqSignals = 5
 numThreadsFI = 3
 goldFile = /tmp/kmeans/gold
-outputFile = /tmp/kmeans/gold
+outputFile = /tmp/kmeans/output
 maxWaitTime = 10
-gdbInitStrings = file /tmp/kmeans/kmeans;set args 4 300000 34 /tmp/kmeans/input /tmp/kmeans/output
-signalCmd = pkill -2 kmeans
-killStrs = pkill -9 gdb;pkill -9 kmeans
+gdbInitStrings = file /tmp/kmeans/kmeans;set args 4 1000000 2 /tmp/kmeans/input /tmp/kmeans/output
+signalCmd = killall -2 kmeans
+killStrs = killall -9 gdb;killall -9 kmeans
+
+initSignal = 2
+endSignal = 4
 
 [single]
-initSignal = 0
-endSignal = 5
+faultModel = 0
+
+[double]
+faultModel = 1
+
+[random]
 faultModel = 2
+
+[zero]
+faultModel = 3
